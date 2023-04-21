@@ -1,0 +1,231 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>Certificate Validator</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'toastr.css' %}" />
+    <script src="{% static 'toastr.min.js' %}"></script>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{% static 'ex-component-toastr.css' %}"
+    />
+    <style>
+      #toast-container > .toast-error {
+        background-color: #bd362f;
+      }
+      .result {
+        justify-content: center;
+        /* text-align: center; */
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+        margin-top: 50px;
+      }
+      td {
+        border: 1px solid white;
+        color: white;
+        font-size: 18px;
+        padding: 10px;
+        /* border-collapse: collapse; */
+      }
+      /* table {
+        border-collapse: collapse;
+      } */
+      .bold {
+        font-weight: 600;
+      }
+      h1 {
+        margin-top: 50px;
+      }
+      /*  */
+      /*  */
+      /*  */
+      form {
+        display: flex;
+        gap: 20px;
+      }
+      body {
+        color: white;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        /* justify-content: center; */
+        align-items: center;
+        min-height: 100vh;
+        font-family: "Jost", sans-serif;
+        background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      }
+      .main {
+        width: 350px;
+        height: 500px;
+        background: red;
+        overflow: hidden;
+        background: url("https://doc-08-2c-docs.googleusercontent.com/docs/securesc/68c90smiglihng9534mvqmq1946dmis5/fo0picsp1nhiucmc0l25s29respgpr4j/1631524275000/03522360960922298374/03522360960922298374/1Sx0jhdpEpnNIydS4rnN4kHSJtU1EyWka?e=view&authuser=0&nonce=gcrocepgbb17m&user=03522360960922298374&hash=tfhgbs86ka6divo3llbvp93mg4csvb38")
+          no-repeat center/ cover;
+        border-radius: 10px;
+        box-shadow: 5px 20px 50px #000;
+      }
+      #chk {
+        display: none;
+      }
+      .signup {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+      label {
+        color: #fff;
+        font-size: 2.3em;
+        justify-content: center;
+        display: flex;
+        margin: 60px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.5s ease-in-out;
+      }
+      input {
+        width: 60%;
+        height: 20px;
+        /* background: #e0dede; */
+        justify-content: center;
+        display: flex;
+        margin: 20px auto;
+        padding: 10px;
+        border: none;
+        outline: none;
+        border-radius: 5px;
+      }
+      button {
+        width: 60%;
+        height: 40px;
+        margin: 10px auto;
+        justify-content: center;
+        display: block;
+        color: #fff;
+        background: #573b8a;
+        font-size: 1em;
+        font-weight: bold;
+        margin-top: 20px;
+        outline: none;
+        border: none;
+        border-radius: 5px;
+        transition: 0.2s ease-in;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #6d44b8;
+      }
+      .login {
+        height: 460px;
+        background: #eee;
+        border-radius: 60% / 10%;
+        transform: translateY(-180px);
+        transition: 0.8s ease-in-out;
+      }
+      .login label {
+        color: #573b8a;
+        transform: scale(0.6);
+      }
+
+      #chk:checked ~ .login {
+        transform: translateY(-500px);
+      }
+      #chk:checked ~ .login label {
+        transform: scale(1);
+      }
+      #chk:checked ~ .signup label {
+        transform: scale(0.6);
+      }
+      .match {
+        color: green;
+      }
+      .unmatch {
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <!-- <div class="main">  	 -->
+      <label for="">Certificate Validator</label>
+      <form>
+        <input type="file" id="img" name="img" accept="image/*" />
+        <button onclick="processImage(event)">Process</button>
+      </form>
+      <div class="result" id="result"></div>
+    </div>
+  </body>
+  <script>
+    function processImage(event) {
+      event.preventDefault();
+
+      var fd = new FormData();
+      var files = $("#img")[0].files;
+      if (files.length > 0) {
+        fd.append("image", files[0]);
+      } else {
+        toastr.error("Upload an image!");
+        return;
+      }
+
+      toastr.clear();
+      toastr.info("Please wait...");
+
+      $.ajax({
+        type: "POST",
+        url: "/validate/",
+        data: fd,
+        processData: false,
+        contentType: false,
+        success: function (data) {
+          if (data.hasOwnProperty("error")) {
+            toastr.clear();
+            toastr.error(data["error"]);
+          } else {
+            toastr.clear();
+            // toastr.success("Success");
+            createTable(data["data"]["data"], data["data"]["type"]);
+          }
+        },
+        error: function (data) {
+          console.log("Error!");
+          toastr.clear();
+          toastr.error("Something went wrong. Try again later.");
+        },
+      });
+    }
+
+    function createTable(data, type) {
+      console.log(type);
+      var html = ``;
+      if (type == true) {
+        html += `<h1 class="match">Certificate matched</h1>`;
+      } else {
+        html += `<h1 class="unmatch">Certificate not matched</h1>`;
+      }
+      html += `<h2>Information extrated</h2><table>`;
+
+      // console.log(data)
+
+      for (i = 0; i < data.length; i++) {
+        console.log(data[i]);
+        var key = Object.keys(data[i])[0];
+        html +=
+          `<tr><td class="bold">` +
+          key +
+          `</td><td>` +
+          data[i][key] +
+          `</td></tr>`;
+      }
+
+      html += `</table>`;
+      document.getElementById("result").innerHTML = html;
+    }
+  </script>
+</html>
