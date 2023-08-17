@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from home.models import dataModel
+from home.views import dataModel
 
 # Register your models here.
 
